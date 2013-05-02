@@ -1,0 +1,59 @@
+.frog {
+    position: relative;
+    width: 1000px;
+    height: 600px;
+    margin: 0 auto;
+    padding: 0;
+    background: url('/images/404-error.png') center no-repeat;
+}
+
+.frog a {
+    position: absolute;
+    top: 30px;
+    left: 110px;
+    color: #222;
+    font-family: Arial, Helvetica, sans-serif; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.frog a:hover .text4 {
+    color: #60BC2A;
+}
+
+.frog .text1 {
+    font-size: 156px;
+    line-height: 130px;
+    letter-spacing: -15px;
+}
+
+.frog .text2 {
+    font-size: 66px;
+    line-height: 50px;
+    letter-spacing: -5px;
+}
+
+.frog .text3 {
+    font-size: 23px;
+    line-height: 26px;
+    letter-spacing: -2px;
+}
+
+.frog .text4 {
+    font-size: 35px;
+    line-height: 32px;
+    letter-spacing: -3px;
+}
+.twitter-icon {
+    background : url('../images/social-icons.png') no-repeat -30px 0px;
+    width: 30px;
+    height: 30px;
+    margin: 1px 0 0 4px;
+    display: inline-block;
+    vertical-align: top;
+    cursor: auto;
+    white-space: nowrap;
+}
+
+
