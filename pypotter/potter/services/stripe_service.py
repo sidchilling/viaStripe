@@ -37,7 +37,7 @@ def _get_access_token_info(code):
 		'code' : code,
 		'grant_type' : 'authorization_code'
 		})
-    if r.status_code == 200:
+    if r.ok:
 	return json.loads(r.content)
     else:
 	raise Exception
@@ -51,7 +51,7 @@ def _get_test_access_token_info(code):
 		'code' : code,
 		'grant_type' : 'authorization_code'
 		})
-    if r.status_code == 200:
+    if r.ok:
 	return json.loads(r.content)
     else:
 	raise Exception
@@ -59,7 +59,7 @@ def _get_test_access_token_info(code):
 def _get_user_info(access_token):
     r = requests.get(url = 'https://api.stripe.com/v1/account',
 	    auth = (access_token, ''))
-    if r.status_code == 200:
+    if r.ok:
 	return json.loads(r.content)
     else:
 	raise Exception
