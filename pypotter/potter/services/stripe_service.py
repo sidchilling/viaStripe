@@ -102,7 +102,7 @@ def _start_transaction(form_id, livemode, **kwargs):
 	    postal_code = kwargs.get('postal_code', None), country = kwargs.get('country', None),
 	    transaction_state = TRANSACTION_PROCESSING, livemode = livemode)
     t.save()
-    return str(t.id)
+    return '%s' %(t.id)
 
 def _charge_card(cost, token, access_token, description):
     import stripe

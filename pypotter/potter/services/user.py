@@ -31,7 +31,7 @@ def login(code):
 	# Update access_token
 	User.objects(id = str(u.id)).update(set__live_access_token =
 		user_stripe_details.get('access_token'))
-	return str(u.id)
+	return '%s' %(u.id)
     else:
 	return _add_new_user(user_stripe_details = user_stripe_details)
 
@@ -66,7 +66,7 @@ def _add_new_user(user_stripe_details):
 	    stripe_charge_enabled = user_stripe_details.get('charge_enabled', None),
 	    stripe_currencies = user_stripe_details.get('currencies', None))
     user.save()
-    return str(user.id)
+    return '%s' %(user.id)
 
 def save_details(user_id, **kwargs):
     User.objects(id = user_id).update(**kwargs)
