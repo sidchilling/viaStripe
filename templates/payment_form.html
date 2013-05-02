@@ -1,0 +1,226 @@
+<%inherit file="payment_base.html" />
+
+<script type="text/javascript" src="https://js.stripe.com/v1"></script>
+<script type="text/javascript">
+    % if f.get('livemode'):
+	Stripe.setPublishableKey("${u.get('live_stripe_publishable_key', '')}");
+    % else:
+	Stripe.setPublishableKey("${u.get('test_stripe_publishable_key', '')}");
+    % endif
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+	$('#address_pay_btn').bind('click', window.address_payment);
+	$('#no_address_pay_btn').bind('click', window.no_address_payment);
+	window.make_country_typeahead();
+    });
+</script>
+<%text>
+<script type="text/x-jquery-tmpl" id="payment_error_tmpl">
+    <div class="alert alert-block alert-error fade in">
+	<button type="button" class="close" data-dismiss="alert">&times;</button>
+	<h4 class="alert-heading">Error while submitting</h4>
+	<p>${error}</p>
+    </div>
+</script>
+<script type="text/x-jquery-tmpl" id="payment_successful_tmpl">
+    <div class="row-fluid">
+	<div class="span12">
+	    <div class="alert alert-block alert-success fade in">
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		<h4 class="alert-heading">Payment Successful</h4>
+		<p>Thanks for your payment. Below are your details of the transaction. Please note your transaction id.</p>
+	    </div>
+	</div>
+    </div>
+    <div class="row-fluid">
+	<div class="span12">
+	    <div class="hero-unit">
+		<dl class="dl-horizontal">
+		    <dt>Transaction Id</dt>
+		    <dd>${transaction_id}</dd>
+		    <dt>Name on Card</dt>
+		    <dd>${name_on_card}</dd>
+		    <dt>Email</dt>
+		    <dd>${email}</dd>
+		    <dt>Amount</dt>
+		    <dd>$${cost}</dd>
+		</dl>
+	    </div>
+	</div>
+    </div>
+</script>
+</%text>
+<div class="container-fluid" style="min-height: 500px;" id="main_payment_container">
+    <div class="row-fluid">
+	<div class="span12">
+	    <div class="hero-unit" style="padding: 30px;">
+		<dl class="dl-horizontal">
+		    % if f.get('seller_name', None):
+			<dt>Seller</dt>
+			<dd>${f.get('seller_name', None)}
+		    % endif
+		    % if f.get('seller_email', None):
+			<dt>Email</dt>
+			<dd>${f.get('seller_email', None)}</dd>
+		    % endif
+		    <dt>Cost</dt>
+		    <dd>$${f.get('cost')}</dd>
+		    % if f.get('description', None):
+			<dt>Description</dt>
+			<dd>${f.get('description')}
+		    % endif
+		</dl>
+	    </div>
+	</div>
+    </div>
+    % if not f.get('livemode'):
+	<div class="row-fluid">
+	    <div class="span12">
+		<div class="alert alert-info">
+		    <h4>Test Mode</h4>
+		    <p>Please use the card number 4242424242424242 for a successful test payment.</p>
+		</div>
+	    </div>
+	</div>
+    % endif
+    <div class="row-fluid">
+	<input type="hidden" name="form_id" id="form_id" value="${f.get('id')}" />
+	<div class="span12" id="payment_error_div" name="payment_error_div"></div>
+	% if f.get('billing_address_required'):
+	    <div class="form-horizontal">
+		<div class="span6">
+		    <div class="control-group">
+			<label class="control-label" for="name_on_card">Name on Card</label>
+			<div class="controls">
+			    <input type="text" id="name_on_card" name="name_on_card" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="email">Email</label>
+			<div class="controls">
+			    <input type="text" id="email" name="email" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="card_number">Card Number</label>
+			<div class="controls">
+			    <input type="text" id="card_number" name="card_number" />
+			    <br />
+			    <img src="/images/cards.gif" style="margin-top: 5px;" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="security_code">Security Code</label>
+			<div class="controls">
+			    <input type="password" id="security_code" name="security_code" style="width: 25px;" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="card_expiry_month">Expiration</label>
+			<div class="controls">
+			    <select id="card_expiry_month" name="card_expiry_month" style="width: 85px;">
+				% for m in months:
+				    <option value="${m.get('value', '')}">${m.get('month', '')}</option>
+				% endfor
+			    </select>
+			    /
+			    <select id="card_expiry_year" name="card_expiry_year" style="width: 75px;">
+				% for y in years:
+				    <option value="${y}">${y}</option>
+				% endfor
+			    </select>
+			</div>
+		    </div>
+		</div>
+		<div class="span6">
+		    <div class="control-group">
+			<label class="control-label" for="billing_address">Billing Address</label>
+			<div class="controls">
+			    <input type="text" name="billing_address" id="billing_address" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="city">City</label>
+			<div class="controls">
+			    <input type="text" name="city" id="city" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="state">State</label>
+			<div class="controls">
+			    <input type="text" name="state" id="state" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="postal_code">Postal Code</label>
+			<div class="controls">
+			    <input type="text" name="postal_code" id="postal_code" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="country">Country</label>
+			<div class="controls">
+			    <input type="text" id="country" name="country" class="typeahead" autocomplete="off" />
+			</div>
+		    </div>
+		    <div class="control-group" style="margin-top: 100px;">
+			<div class="controls">
+			    <button type="button" class="btn btn-info btn-large" id="address_pay_btn" data-loading-text="Processing">Submit Payment</button>
+			</div>
+		    </div>
+		</div>
+	    </div>
+	% else:
+	    <div class="span12">
+		<div class="form-horizontal">
+		    <div class="control-group">
+			<label class="control-label" for="name_on_card">Name on Card</label>
+			<div class="controls">
+			    <input type="text" name="name_on_card" id="name_on_card" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="email">Email</label>
+			<div class="controls">
+			    <input type="text" name="email" id="email" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="card_number">Card Number</label>
+			<div class="controls">
+			    <input type="text" name="card_number" id="card_number" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="security_code">Security Code</label>
+			<div class="controls">
+			    <input type="password" id="security_code" name="security_code" style="width: 25px;" />
+			</div>
+		    </div>
+		    <div class="control-group">
+			<label class="control-label" for="card_expiry_month">Expiration</label>
+			<div class="controls">
+			    <select id="card_expiry_month" name="card_expiry_month" style="width: 85px;">
+				% for m in months:
+				    <option value="${m.get('value', '')}">${m.get('month', '')}</option>
+				% endfor
+			    </select>
+			    /
+			    <select id="card_expiry_year" name="card_expiry_year" style="width: 75px;">
+				% for y in years:
+				    <option value="${y}">${y}</option>
+				% endfor
+			    </select>
+			</div>
+		    </div>
+		    <div class="control-group">
+			<div class="controls">
+			    <button type="button" id="no_address_pay_btn" class="btn btn-large btn-info" data-loading-text="Processing">Submit Payment</button>
+			</div>
+		    </div>
+		</div>
+	    </div>
+	% endif
+    </div>
+</div>

@@ -1,0 +1,165 @@
+<%inherit file="base.html" />
+
+<script type="text/javascript">
+    $(document).ready(function(){
+	// Hide the form preview and delete button
+	$('.form_preview_btn').hide();
+	$('.form_delete_btn').hide();
+
+	% if show_user_details:
+	    $('#user_details_modal').modal();
+	% endif
+	$('#user_details_save').bind('click', window.submit_user_details);
+	$('#create_new_form_btn').bind('click', window.create_new_form);
+	$('.form_tr').hover(window.form_tr_hover_in, window.form_tr_hover_out);
+	$('.form_delete_btn').bind('click', window.show_form_delete_modal);
+	$('.tooltip_btn').tooltip();
+    });
+</script>
+
+<div id="new_form_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelled-by="new_form_modal_label">
+    <div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	<h3>Start creating your form</h3>
+    </div>
+    <div class="modal-body">
+	<div class="row-fluid">
+	    <div class="span12">
+		<div class="alert alert-error" id="new_form_alert" style="display: none;">
+		    Please enter a name for the form
+		</div>
+		<div class="alert alert-error" id="error_form_alert" style="display: none;">
+		    Oops. Something unexpected just happened.
+		</div>
+	    </div>
+	</div>
+	<div class="row-fluid">
+	    <div class="span12">
+		<div class="form-horizontal">
+		    <div class="control-group">
+			<label class="control-label" for="form_name">Name</label>
+			<div class="controls">
+			    <input type="text" id="form_name" name="form_name" placeholder="Name of your form"> 
+			</div>
+		    </div>
+		</div>
+	    </div>
+	</div>
+	<div class="modal-footer">
+	    <button type="button" id="create_new_form_btn" class="btn btn-info" name="create_new_form_btn" data-loading-text="Creating">
+		Next <i class="icon-step-forward icon-white"></i>
+	    </button>
+	</div>
+    </div>
+</div>
+
+% if show_user_details:
+    <!-- Modal -->
+    <div id="user_details_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="user_form_modal_label">
+	<div class="modal-header"> 
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	    <h3 id="user_details_label">Almost Done! Just some more details.</h3>
+	</div>
+	<div class="modal-body">
+	    <div class="row-fluid">
+		<div class="span12">
+		    <div class="form-horizontal">
+			<div class="control-group">
+			    <label class="control-label" for="name">Name</label>
+			    <div class="controls">
+				<input type="text" id="name" name="name" placeholder="e.g. Siddharth Saha" value="${name}"/>
+			    </div>
+			</div>
+			<div class="control-group">
+			    <label class="control-label" for="business_name">Name of Business</label>
+			    <div class="controls">
+				<input type="text" id="business_name" name="business_name" placeholder="e.g. PayMe Inc." value="${business_name}" />
+			    </div>
+			</div>
+			<div class="control-group">
+			    <label class="control-label" for="terms_url">Terms &amp; Conditions URL</label>
+			    <div class="controls">
+				<input type="text" id="terms_url" name="terms_url" placeholder="e.g http://payme.com/terms" value="${terms_url}" />
+			    </div>
+			</div>
+		    </div>
+		</div>
+	    </div>
+	    <div class="modal-footer">
+		<button id="user_details_save" name="user_details_save" class="btn btn-info" data-loading-text="Saving">
+		    <i class="icon-ok icon-white"></i> Save
+		</button>
+	    </div>
+	</div>
+    </div>
+% endif
+
+% if not forms_present:
+<div class="container-fluid" style="min-height: 500px;">
+    <div class="row-fluid">
+	<div class="span12">
+	    <div class="hero-unit" style="min-height: 450px; text-align: center;">
+		<div style="margin-top: 160px;">
+		    <p class="text-info">Forms are the basic elements for receiving payments. For each type of payment, you create a
+		    new form and distribute the URL.</p>
+		    <a href="#new_form_modal" data-toggle="modal" class="btn btn-large btn-info">Create a Form</a>
+		</div>
+	    </div>
+	</div>
+    </div>
+</div>
+% else:
+    <%text>
+	<!-- This is the Modal for the delete form -->
+	<script type="text/x-jquery-tmpl" id="delete_form_modal">
+	    <div id="delete_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelled-by="delete_modal_label" aria-hidden="true">
+		<div class="modal-header">
+		    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		    <h3>Delete?</h3>
+		</div>
+		<div class="modal-body">
+		    <p>Do you really want to delete <b>${form_name}</b>?</p>
+		    <p class="muted" style="font-size: 12px;">All data related to the form will be permanently deleted.</p>
+		</div>
+		<div class="modal-footer">
+		    <button class="btn" id="delete_form_btn" data-loading-text="Deleting">Yes</button>
+		    <button class="btn btn-info" data-dismiss="modal" aria-hidden="true">No</button>
+		</div>
+	    </div>
+	</script>
+    </%text>
+    <div class="container-fluid" style="min-height: 500px;">
+	<div class="row-fluid" style="padding-top: 5px; padding-bottom: 20px; text-align: right;">
+	    <a href="#new_form_modal" data-toggle="modal" class="btn btn-large"><i class="icon-plus-sign"></i> Add New Form</a>
+	</div>
+	<div class="row-fluid">
+	    <div id="delete_modal_container"></div>
+	</div>
+	<div class="row-fluid">
+	    <div class="span12">
+		<table class="table table-hover table-striped">
+		    <tbody>
+			% for f in forms:
+			    <tr data-form-id="${f.get('id')}" class="form_tr">
+				<td style="width: 40%; height: 35px; vertical-align: middle;"><i class="icon-th-large"></i> <a href="/form_conf?id=${f.get('id')}">${f.get('name')}</a></td>
+				% if f.get('livemode'):
+				    <td style="width: 10%; height: 35px; vertical-align: middle;"><span class="label label-success"><span style="padding-left:5px; padding-right:5px;">Live</span></span></td>
+				% else:
+				    <td style="width: 10%; height: 35px; vertical-align: middle;"><span class="label"><span style="padding-left: 5px; padding-right: 5px;">Test</span></span></td>
+				% endif
+				<td style="width: 20%; height: 35px; vertical-align: middle;"><span class="muted" style="font-size: 12px;">${f.get('creation_time')}</span></td>
+				<td style="width: 20%; height: 35px; vertical-align: middle;">
+				    <a class="btn form_preview_btn ${f.get('id')} tooltip_btn" href="${f.get('url')}" target="_blank" rel="tooltip" data-placement="bottom" data-original-title="Preview you form and distribute the link.">
+					<i class="icon-eye-open"></i></a>
+				    <a class="btn form_delete_btn ${f.get('id')} tooltip_btn" href="javascript:void(0);" rel="tooltip" data-placement="bottom" data-orginal-title="Delete" data-form-name="${f.get('name')}" data-form-id="${f.get('id')}" title="Delete">
+					<i class="icon-trash"></i></a>
+				</td>
+			    </tr>
+			% endfor
+		    <tbody>
+		</table>
+	    </div>
+	</div>
+    </div>
+% endif
+

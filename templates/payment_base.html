@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta charset="utf-8">
+	<title>${self.page_title()}</title>
+	<meta name="viewport" content="width=device-width; initial-scale=1.0"></meta>
+	<meta name="description" content="Payments Simplified"></meta>
+	<meta name="author" content="Siddharth Saha"></meta>
+	<link href="css/bootstrap.min.css" rel="stylesheet"></link>
+	<link href="css/bootstrap-responsive.min.css" rel="stylesheet"></link>
+	<link href="css/main.css" rel="stylesheet"></link>
+	<link rel="shortcut icon" href="images/favicon.ico"></link>
+	<style>
+	    body {
+		padding-top: 60px;
+		width: 1080px;
+		margin: auto;
+	    }
+	</style>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript" src="javascript/bootstrap.min.js"></script>
+	<script type="text/javascript" src="javascript/underscore-min.js"></script>
+	<script type="text/javascript" src="javascript/backbone-min.js"></script>
+	<script type="text/javascript" src="javascript/jquery.tmpl.js"></script>
+	<script type="text/javascript" src="javascript/payment.js"></script>
+	<script type="text/javascript" src="javascript/payment_views.js"></script>
+	% if scripts:
+	    % for script in scripts:
+		<script type="text/javascript" src="javascript/${script}"></script>
+	    % endfor
+	% endif
+    </head>
+    <body>
+	<div class="navbar navbar-fixed-top navbar-inverse">
+	    <div class="navbar-inner">
+		<div class="container-fluid">
+		    <a id="brand_name" class="brand" href="/">Pay viaStripe</a>
+		</div>
+	    </div>
+	</div>
+	${next.body()}
+	<hr>
+	<div>&copy; Pay viaStripe 2012</div>
+    </body>
+</html>
+
+<%def name="page_title()">Pay viaStripe</%def>

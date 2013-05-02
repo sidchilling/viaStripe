@@ -1,0 +1,237 @@
+<%inherit file="base.html" />
+<script type="text/javascript">
+    $(document).ready(function() {
+	$('#save_form_conf_btn').bind('click', window.save_form_conf);
+	$('#payments_tab_heading').bind('click', window.get_payments);
+	window.bind_live_toggle_btn();
+	window.bind_toggle_btn(['bcc_email_toggle', 'send_invoice_email_toggle', 'billing_address_toggle']);
+    });
+</script>
+
+<%text>
+    <script type="text/x-jquery-tmpl" id="test_stripe_connect_modal">
+	<div id="test_connect_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelled-by="test_connect_modal_label" aria-hidden="true">
+	    <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3>Connect with Stripe in Test Mode</h3>
+	    </div>
+	    <div class="modal-body">
+		<p>To enable Test Mode, you have to connect to Stripe in Test Mode. Please connect again.</p>
+		<p class="muted" style="font-size: 12px;">You will have to do this just once to enable test mode.</p>
+	    </div>
+	    <div class="modal-footer">
+		<a id="signup_test_btn" href="${test_stripe_connect_url}"><img src="images/stripe-test-connect.png" /></a>
+		<span class="badge badge-important">Test Mode</span>
+	    </div>
+	</div>
+    </script>
+    <script type="text/x-jquery-tmpl" id="payments_progress_bar_tmpl">
+	<div class="row-fluid">
+	    <div class="span12">
+		<div class="progress progress-info progress-striped" style="margin-top: 40px;">
+		    <div class="bar" id="payments_progress_bar" style="width: 5%;"></div>
+		</div>
+	    </div>
+	</div>
+    </script>
+    <script type="text/x-jquery-tmpl" id="generic_error_tmpl">
+	<div class="row-fluid">
+	    <div class="span12">
+		<div class="alert alert-error alert-block fade in">
+		    <h4>${error_heading}</h4>
+		    <p>${error_msg}</p>
+		</div>
+	    </div>
+	</div>
+    </script>
+    <script type="text/x-jquery-tmpl" id="transaction_report_tmpl">
+	<div class="row-fluid">
+	    <div class="span12">
+		<table class="table table-bordered table-hover">
+		    <thead>
+			<tr>
+			    <th>Name</th>
+			    <th>Email</th>
+			    <th>Address</th>
+			    <th>Amount</th>
+			    <th>Card #</th>
+			    <th>Transaction Id</th>
+			    <th>Live / Test</th>
+			</tr>
+		    </thead>
+		    <tbody>
+			{{each(index, value) transactions}}
+			    <tr>
+				<td>${value.name}</td>
+				<td>${value.email}</td>
+				<td>
+				    {{if value.billing_address}}
+					${value.billing_address},
+					${value.city},
+					${value.state},
+					${value.country} <br />
+					${value.postal_code}
+				    {{else}}
+					NA
+				    {{/if}}
+				</td>
+				<td>
+				    $${value.stripe_response.amount / 100.0}
+				</td>
+				<td>***${value.stripe_response.card.last4}</td>
+				<td>${value.id}</td>
+				<td>
+				    {{if value.livemode}}
+					<span class="badge badge-info">Live</span>
+				    {{else}}
+					<span class="badge">Test</span>
+				    {{/if}}
+				</td>
+			    </tr>
+			{{/each}}
+		    </tbody>
+		</table>
+	    </div>
+	</div>
+    </script>
+</%text>
+
+
+<div class="container-fluid" style="min-height: 500px;">
+    <div class="row-fluid">
+	<div class="span10">
+	    <h4>${f.get('name')}</h4>
+	</div>
+	<div class="span2 pull-right">
+	    <a class="btn btn-large" href="${f.get('url')}" target="_blank"><i class="icon-eye-open"></i>  Preview</a>
+	</div>
+    </div>
+    <div class="row-fluid">
+	<div class="span12">
+	    <ul class="nav nav-tabs">
+		<li id="conf_tab" class="active">
+		    <a href="#conf" data-toggle="tab">Configuration</a>
+		</li>
+		<li>
+		    <a href="#payments" id="payments_tab_heading" data-toggle="tab">Payments</a>
+		</li>
+	    </ul>
+	    <div id="tab_content" class="tab-content">
+		<div class="tab-pane fade in active" id="conf">
+		    <div class="row-fluid">
+			<div id="modal_container"></div>
+		    </div>
+		    <div class="row-fluid">
+			<div class="span12">
+			    <div class="form-horizontal">
+				<input type="hidden" id="form_id" name="form_id" value="${f.get('id')}" />
+				<div class="control-group">
+				    <label class="control-label" for="description">Description</label>
+				    <div class="controls">
+					<textarea name="description" id="description" rows="3" style="width: 268px;">${f.get('description')}</textarea>
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="cost">Charge Amount</label>
+				    <div class="controls">
+					<div class="input-prepend">
+					    <span class="add-on">$</span>
+					    <input type="text" class="input-xlarge" style="width: 242px;" id="cost" name="cost" placeholder="10.00" value="${f.get('cost', ) if f.get('cost', None) else ''}"/>
+					</div>
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="seller_name">Seller's Name</label>
+				    <div class="controls">
+					<input type="text" class="input-xlarge" id="seller_name" name="seller_name" placeholder="PayMe" value="${f.get('seller_name') if f.get('seller_name', None) else ''}"/>
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="seller_email">Seller's Email</label>
+				    <div class="controls">
+					<input type="text" class="input-xlarge" id="seller_email" name="seller_email" placeholder="support@payme.com" value="${f.get('seller_email') if f.get('seller_email', None) else ''}"/>
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="billing_address_required">Require Billing Address?</label>
+				    <div class="controls">
+					% if f.get('billing_address_required'):
+					    <div class="toggle basic billing_address_toggle" data-enabled="YES" data-disabled="NO" data-toggle="toggle">
+						<input type="checkbox" name="billing_address_required" class="checkbox" checked="checked" id="billing_address_required" value="1" />
+						<label class="check" for="billing_address_required"></label>
+					    </div>
+					% else:
+					    <div class="toggle basic billing_address_toggle" data-enabled="YES" data-disabled="NO" data-toggle="toggle">
+						<input type="checkbox" name="billing_address_required" class="checkbox" id="billing_address_required" value="1" />
+						<label class="check" for="billing_address_required"><label>
+					    </div>
+					% endif
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="send_invoice_email">Send Payment Receipts?</label>
+				    <div class="controls">
+					% if f.get('send_invoice_email'):
+					    <div class="toggle basic send_invoice_email_toggle" data-enabled="YES" data-disabled="NO" data-toggle="toggle">
+						<input type="checkbox" name="send_invoice_email" class="checkbox" checked="checked" id="send_invoice_email" value="1" />
+						<label class="check" for="send_invoice_email"></label>
+					    </div>
+					% else:
+					    <div class="toggle basic send_invoice_email_toggle" data-enabled="YES" data-disabled="NO" data-toggle="toggle">
+						<input type="checkbox" name="send_invoice_email" class="checkbox" id="send_invoice_email" value="1" />
+						<label class="check" for="send_invoice_email"></label>
+					    </div>
+					% endif
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="bcc_email">BCC Email Me Payment Receipts?</label>
+				    <div class="controls">
+					% if f.get('bcc_email'):
+					    <div class="toggle basic bcc_email_toggle" data-enabled="YES" data-disabled="NO" data-toggle="toggle">
+						<input type="checkbox" name="bcc_email" class="checkbox" checked="checked" id="bcc_email" value="1" />
+						<label class="check" for="bcc_email"></label>
+					    </div>
+					% else:
+					    <div class="toggle basic bcc_email_toggle" data-enabled="YES" data-disabled="NO" data-toggle="toggle">
+						<input type="checkbox" name="bcc_email" class="checkbox" id="bcc_email" value="1" />
+						<label class="check" for="bcc_email"></label>
+					    </div>
+					% endif
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label" for="livemode">Live?</label>
+				    <div class="controls">
+					% if f.get('livemode'):
+					    <div class="toggle basic live_toggle" data-enabled="LIVE" data-disabled="TEST" data-toggle="toggle">
+						<input type="checkbox" name="livemode" class="checkbox" checked="checked" id="livemode" value="1" />
+						<label class="check" for="livemode"></label>
+					    </div>
+					% else:
+					    <div class="toggle basic live_toggle" data-enabled="LIVE" data-disabled="TEST" data-toggle="toggle">
+						<input type="checkbox" name="livemode" class="checkbox" id="livemode" value="1" />
+						<label class="check" for="livemode"></label>
+					    </div>
+					% endif
+				    </div>
+				</div>
+				<div class="control-group">
+				    <label class="control-label"></label>
+				    <div class="controls">
+					<button type="button" id="save_form_conf_btn" class="btn btn-info btn-large" data-loading-text="Saving">
+					    <i class="icon-ok icon-white"></i> Save
+					</button>
+				    </div>
+				</div>
+			    </div>
+			</div>
+		    </div>
+		</div>
+		<div class="tab-pane fade" id="payments">
+		    <div id="payments_tab"></div>
+		</div>
+	    </div>
+	</div>
+    </div>
+</div>

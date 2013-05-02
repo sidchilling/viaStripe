@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta charset="utf-8">
+	<title>${self.page_title()}</title>
+	<meta name="viewport" content="width=device-width; initial-scale=1.0"></meta>
+	<meta name="description" content="Payments Simplified"></meta>
+	<meta name="author" content="Siddharth Saha"></meta>
+	<link href="css/bootstrap.min.css" rel="stylesheet"></link>
+	<link href="css/bootstrap-responsive.min.css" rel="stylesheet"></link>
+	<link href="css/bootstrap-toggle.css" rel="stylesheet"></link>
+	<link href="css/main.css" rel="stylesheet"></link>
+	<link rel="shortcut icon" href="images/favicon.ico"></link>
+	<style>
+	    body {
+		padding-top: 60px;
+		width: 1080px;
+		margin: auto;
+	    }
+	</style>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript" src="javascript/bootstrap.min.js"></script>
+	<script type="text/javascript" src="javascript/underscore-min.js"></script>
+	<script type="text/javascript" src="javascript/backbone-min.js"></script>
+	<script type="text/javascript" src="javascript/jquery.tmpl.js"></script>
+	<script type="text/javascript" src="javascript/bootstrap-toggle.js"></script>
+	<script type="text/javascript" src="javascript/main.js"></script>
+	<script type="text/javascript" src="javascript/main_views.js"></script>
+	<script type="text/javascript" src="javascript/helpers.js"></script>
+	% if scripts:
+	    % for script in scripts:
+		<script type="text/javascript" src="javascript/${script}"></script>
+	    % endfor
+	% endif
+    </head>
+    <body>
+	<div class="navbar navbar-fixed-top navbar-inverse">
+	    <div class="navbar-inner">
+		<div class="container-fluid">
+		    <a id="brand_name" class="brand" href="/">Pay viaStripe</a>
+		    % if username:
+			<div class="pull-right">
+			    <a class="btn btn-inverse">
+				<i class="icon-user icon-white"></i> ${username}
+			    </a>
+			</div>
+		    % endif
+		</div>
+	    </div>
+	</div>
+	${next.body()}
+	<hr>
+	<div class="row-fluid">
+	    <div class="span4">
+		<div>&copy; Pay viaStripe 2012</div>
+	    </div>
+	    <div class="span8" style="text-align: right;">
+		<div class="pull-right" style="margin-left: 4px;"><a href="http://twitter.com/sid_chilling" title="@sid_chilling" class="twitter-icon" target="_blank"></a></div>
+		<div class="pull-right" style="margin-top:4px;"><i><a href="http://shopsocially.com" target="_blank">From ShopSocially Labs</a></i></div>
+	    </div>
+	</div>
+    </body>
+</html>
+
+<%def name="page_title()">Pay viaStripe</%def>
